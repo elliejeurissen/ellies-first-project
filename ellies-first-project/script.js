@@ -1,10 +1,47 @@
 let clicks = 0;
 
-document.getElementById("hello").addEventListener("click", () => {
+document.getElementById("hello").addEventListener("click", (event) => {
   clicks += 1;
   document.getElementById("message").textContent =
     `Hello! You've clicked ${clicks} time${clicks === 1 ? "" : "s"} 🎉`;
+  popEmoji(event.currentTarget);
 });
+
+// Each click pops up a different emoji that floats up and fades away.
+const EMOJIS = ["🎉", "🦄", "🌈", "🚀", "🍕", "🐶", "🌟", "🎸", "🍦", "🦋", "🐙", "🌻", "🎧", "🍩", "🐸", "💖"];
+let emojiBag = [];
+let lastEmoji = null;
+
+// Shuffle all the emojis and hand them out one by one, so every emoji
+// appears once before any repeats.
+function nextEmoji() {
+  if (emojiBag.length === 0) {
+    emojiBag = [...EMOJIS];
+    for (let i = emojiBag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [emojiBag[i], emojiBag[j]] = [emojiBag[j], emojiBag[i]];
+    }
+    // Don't start the new round with the emoji that ended the last one.
+    if (emojiBag[emojiBag.length - 1] === lastEmoji) emojiBag.reverse();
+  }
+  lastEmoji = emojiBag.pop();
+  return lastEmoji;
+}
+
+function popEmoji(button) {
+  const emoji = nextEmoji();
+
+  const pop = document.createElement("span");
+  pop.className = "emoji-pop";
+  pop.textContent = emoji;
+  const box = button.getBoundingClientRect();
+  pop.style.left = `${box.left + box.width / 2}px`;
+  pop.style.top = `${box.top}px`;
+  // Drift a little left or right so each one takes its own path.
+  pop.style.setProperty("--drift", `${Math.round(Math.random() * 160 - 80)}px`);
+  document.body.appendChild(pop);
+  pop.addEventListener("animationend", () => pop.remove());
+}
 
 // Background song: a little looping tune made with the Web Audio API,
 // so there's no music file to download.
